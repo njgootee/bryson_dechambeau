@@ -6,20 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Nathan Gootee">
     <meta charset="UTF-8">
-    <script src = 'https://d3js.org/d3.v5.min.js'></script>
 </head>
+
+<script src = 'https://d3js.org/d3.v5.min.js'></script>
 
 <body onload='init()'>
     <div id = "header">
-        <h1 class = "blocktext">Bryson DeChambeau: Drive for Dough</h1>
+        <h1 class = "blocktext">Bryson DeChambeau:<br>Drive for Dough</h1>
     </div>
 
     <div id = "description">
-        <p class = desc>Nathan Gootee | July 2021</p>
+        <p class = desc>Nathan Gootee | July 2021 | University of Illinois | CS416: Data Visualization</p>
     </div>
 
     <div id = "centered_img">
-    <img src="dechambeau_drive.jpeg" alt="Bryson DeChambeau driving" style='height: 100%; width: 100%; object-fit: contain'>
+        <img src="dechambeau_drive.jpeg" alt="Bryson DeChambeau driving" style='height: 100%; width: 100%; object-fit: contain'>
     </div>
 
     <div id = "caption">
@@ -34,12 +35,99 @@
             Nullam iaculis mauris non ipsum interdum, id tristique nibh ornare. Fusce at vestibulum ex. Suspendisse et turpis nisl.
         </p>
     </div>
-    <div id = "chart">
-        <svg width = 650 height = 650></svg>
+
+    <div id="chart" align="center"></div>
+
+    <div id="description">
+        <p class = desc>github: njgootee</p>
     </div>
+
     <script>
         async function init(){
-            const data =  await d3.csv("https://github.com/njgootee/pga_data/blob/main/pga_tour_stats_2020_clean.csv")
+            //load data
+            const data =  await d3.csv("https://njgootee.github.io/bryson_dechambeau/pga_tour_stats_2020_clean.csv")
+
+            //set margins, width, height
+            var margin = {top: 10, right: 60, bottom: 60, left: 60},
+                width = 650 - margin.left - margin.right,
+                height = 600 - margin.top - margin.bottom;
+
+            //append svg to chart div
+            var svg = d3.select("#chart")
+                .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("class","chart_area")
+                .append("g")
+                    .attr("transform","translate(" + margin.left + "," + margin.top + ")");
+
+            //set x and y scales
+            var xs = d3.scaleLinear().domain([275.0,325.0]).range([0,width]);
+            var ys = d3.scaleLinear().domain([68.5,72.5]).range([height,0]);
+
+            // append tooltip box
+            var tooltip = d3.select("#chart")
+                .append("div")
+                    .attr("class", "tooltip")
+
+            var mouseover = function(d) {
+                tooltip
+                    .style("opacity", 1)
+            }
+
+            var mousemove = function(d) {
+                tooltip
+                    .style("left", (d3.event.pageX + 16) + "px")
+                    .style("top", (d3.event.pageY + 16) + "px")
+                    .html(d.PLAYER_NAME + "<br> Average Driving Distance: " + d.TEE_AVG_DRIVING_DISTANCE + "<br> Scoring Average: " + parseFloat(d.SCORING_AVG_OVERALL).toFixed(2))
+            }
+
+            var mouseleave = function(d) {
+                tooltip
+                    .transition()
+                    .duration(200)
+                    .style("opacity", 0)
+            }
+
+            //append data as scatter plot
+            svg.append("g")
+                .selectAll("circle").data(data).enter().append("circle")
+                    .attr("cx", function(d){return xs(d.TEE_AVG_DRIVING_DISTANCE);})
+                    .attr("cy", function(d){return ys(d.SCORING_AVG_OVERALL);})
+                    .attr("r", 4)
+                .on("mouseover", mouseover)
+                .on("mousemove", mousemove)
+                .on("mouseleave", mouseleave)
+                .filter(function(d){return d.PLAYER_NAME == "Bryson DeChambeau"})
+                    .style("fill", "gold");
+            
+            //append y axis
+            svg.append("g")
+                .call(d3.axisLeft(ys).tickFormat(d3.format("~s")));
+            
+            //append x axis
+            svg.append("g")
+                .attr("transform","translate(0," + height + ")")
+                .call(d3.axisBottom(xs).tickFormat(d3.format("~s")));
+
+            //append y axis title
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "16px")
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-family", "Helvetica, sans-serif")
+                .text("Scoring Average");  
+
+            //append x axis title
+            svg.append("text")             
+                .attr("transform","translate(" + (width/2) + " ," + (height + margin.top + margin.bottom/2) + ")")
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .style("font-family", "Helvetica, sans-serif")
+                .text("Average Driving Distance");
         }
     </script>
 </body>
