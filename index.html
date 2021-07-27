@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bryson DeChambeau: Drive for Dough</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Nathan Gootee">
+    <meta charset="UTF-8">
+    <script src = 'https://d3js.org/d3.v5.min.js'></script>
+</head>
+
+<body onload='init()'>
+    <div id = "header">
+        <h1 class = "blocktext">Bryson DeChambeau: Drive for Dough</h1>
+    </div>
+
+    <div id = "description">
+        <p class = desc>Nathan Gootee | July 2021</p>
+    </div>
+
+    <div id = "centered_img">
+    <img src="dechambeau_drive.jpeg" alt="Bryson DeChambeau driving" style='height: 100%; width: 100%; object-fit: contain'>
+    </div>
+
+    <div id = "caption">
+        <p class = "captext">Bryson DeChambeau hits a drive. Source: Golf Digest</p>
+    </div>
+
+    <div id = "main_text">
+        <p class = "blocktext">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+            Sed accumsan tortor ac commodo imperdiet. Quisque ac cursus velit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
+            Aenean suscipit a nisl in lacinia. Pellentesque sit amet odio hendrerit, feugiat est vel, maximus lorem. 
+            Nullam iaculis mauris non ipsum interdum, id tristique nibh ornare. Fusce at vestibulum ex. Suspendisse et turpis nisl.
+        </p>
+    </div>
+    <div id = "chart">
+        <svg width = 650 height = 650></svg>
+    </div>
+    <script>
+        async function init(){
+            const data =  await d3.csv("https://github.com/njgootee/pga_data/blob/main/pga_tour_stats_2020_clean.csv")
+        }
+    </script>
+</body>
+</html>
