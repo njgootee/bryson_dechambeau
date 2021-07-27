@@ -18,7 +18,7 @@ h1.blocktext {
     font-family: Helvetica, sans-serif;
     background-color: #00433e;
     color: rgb(255, 255, 255);
-    font-size: 60px;
+    font-size: 48px;
     padding: 18px
 }
 
@@ -74,4 +74,33 @@ p.blocktext {
     background-color: #ffffff;
     padding: 18px;
     font-size: 16px
+}
+
+circle{
+    fill: #00433e;
+    stroke: #292929;
+    opacity: 0.6;
+}
+
+#chart{
+    margin-left: auto;
+    margin-right: auto;
+    width: 800px;
+    background-color: #ffffff;
+}
+
+svg.chart_area{
+    background-color: #ffffff;
+}
+
+.tooltip{
+    background-color: #f7f7f7;
+    font-family: Helvetica, sans-serif;
+    border: solid;
+    border-color: #292929;
+    border-width: 1px;
+    border-radius: 5px;
+    padding: 10px;
+    position: absolute;
+    opacity: 0;
 }
