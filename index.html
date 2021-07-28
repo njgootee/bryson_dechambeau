@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="Nathan Gootee">
     <meta charset="UTF-8">
+    <script src = 'https://d3js.org/d3.v5.min.js'></script>
 </head>
-
-<script src = 'https://d3js.org/d3.v5.min.js'></script>
 
 <body onload='init()'>
     <div id = "header">
@@ -36,6 +35,19 @@
         </p>
     </div>
 
+    <div id = "options">
+    <select id = "y_axis" onchange = "init.getYAxis(this)" class = "select">
+        <option value = "SCORING_AVG_OVERALL">Select Y-Axis</option>
+        <option value = "SCORING_AVG_OVERALL">Scoring Average</option>
+        <option value ="FINISHES_TOP10">Top 10 Finishes</option>
+        <option value = "FINISHES_OFFICIAL_MONEY">Money Earned</option>
+    </select>
+
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "TEE_AVG_DRIVING_DISTANCE"> Slide 1</button>
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "TEE_AVG_FIR_PCT"> Slide 2</button>
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "PUTTING_AVG_OVERALL"> Slide 3</button>
+    </div>
+
     <div id="chart" align="center"></div>
 
     <div id="description">
@@ -44,8 +56,8 @@
 
     <script>
         async function init(){
-            //load data
-            const data =  await d3.csv("https://njgootee.github.io/bryson_dechambeau/pga_tour_stats_2020_clean.csv")
+            //load data "https://njgootee.github.io/bryson_dechambeau/pga_tour_stats_2020_clean.csv"
+            const data =  await d3.csv("pga_tour_stats_2020_clean.csv")
 
             //set margins, width, height
             var margin = {top: 10, right: 60, bottom: 60, left: 60},
@@ -61,27 +73,40 @@
                 .append("g")
                     .attr("transform","translate(" + margin.left + "," + margin.top + ")");
 
-            //set x and y scales
-            var xs = d3.scaleLinear().domain([275.0,325.0]).range([0,width]);
-            var ys = d3.scaleLinear().domain([68.5,72.5]).range([height,0]);
+            //append x axis
+            var xs = d3.scaleLinear().range([0,width]);
+            var xa = d3.axisBottom(xs).tickFormat(d3.format("~s"));
+            svg.append("g")
+                .attr("transform","translate(0," + height + ")")
+                .attr("class", "xAxis");
+            var xLabel = svg.append("text")
+                .attr("transform","translate(" + (width/2) + " ," + (height + margin.top + margin.bottom/2) + ")")
+                .attr("class", "x_axis_title");
 
-            // append tooltip box
+            //append y axis
+            var ys = d3.scaleLinear().range([height,0]);
+            var ya = d3.axisLeft(ys).tickFormat(d3.format("~s"));
+            svg.append("g")
+                .attr("class", "yAxis");
+            var yLabel = svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "16px")
+                .attr("class", "y_axis_title"); 
+
+            //append tooltip
             var tooltip = d3.select("#chart")
                 .append("div")
-                    .attr("class", "tooltip")
+                    .attr("class", "tooltip");
 
+            //mouseover function
             var mouseover = function(d) {
-                tooltip
-                    .style("opacity", 1)
+                    tooltip
+                        .style("opacity", 1)
             }
 
-            var mousemove = function(d) {
-                tooltip
-                    .style("left", (d3.event.pageX + 16) + "px")
-                    .style("top", (d3.event.pageY + 16) + "px")
-                    .html(d.PLAYER_NAME + "<br> Average Driving Distance: " + d.TEE_AVG_DRIVING_DISTANCE + "<br> Scoring Average: " + parseFloat(d.SCORING_AVG_OVERALL).toFixed(2))
-            }
-
+            //mouseleave function
             var mouseleave = function(d) {
                 tooltip
                     .transition()
@@ -89,45 +114,99 @@
                     .style("opacity", 0)
             }
 
-            //append data as scatter plot
-            svg.append("g")
-                .selectAll("circle").data(data).enter().append("circle")
-                    .attr("cx", function(d){return xs(d.TEE_AVG_DRIVING_DISTANCE);})
-                    .attr("cy", function(d){return ys(d.SCORING_AVG_OVERALL);})
-                    .attr("r", 4)
-                .on("mouseover", mouseover)
-                .on("mousemove", mousemove)
-                .on("mouseleave", mouseleave)
-                .filter(function(d){return d.PLAYER_NAME == "Bryson DeChambeau"})
-                    .style("fill", "gold");
-            
-            //append y axis
-            svg.append("g")
-                .call(d3.axisLeft(ys).tickFormat(d3.format("~s")));
-            
-            //append x axis
-            svg.append("g")
-                .attr("transform","translate(0," + height + ")")
-                .call(d3.axisBottom(xs).tickFormat(d3.format("~s")));
+            //initial state
+            var slide = "TEE_AVG_DRIVING_DISTANCE";
+            var y_value = "SCORING_AVG_OVERALL";
 
-            //append y axis title
-            svg.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left)
-                .attr("x",0 - (height / 2))
-                .attr("dy", "16px")
-                .style("text-anchor", "middle")
-                .style("font-size", "16px")
-                .style("font-family", "Helvetica, sans-serif")
-                .text("Scoring Average");  
+            //get selected xAxis
+            init.getXAxis = getXAxis;
+            function getXAxis(selectObj){
+                slide = selectObj.value;
+                update(y_value, slide);
+            }
+            
+            //get selected Y axis
+            init.getYAxis = getYAxis;
+            function getYAxis(selectObj){
+                y_value = selectObj.value;
+                update(y_value, slide);
+            }
 
-            //append x axis title
-            svg.append("text")             
-                .attr("transform","translate(" + (width/2) + " ," + (height + margin.top + margin.bottom/2) + ")")
-                .style("text-anchor", "middle")
-                .style("font-size", "16px")
-                .style("font-family", "Helvetica, sans-serif")
-                .text("Average Driving Distance");
+            //update chart with selected values
+            function update(y_value, slide){
+                //x val dict
+                var xdict = {
+                    "TEE_AVG_DRIVING_DISTANCE": "Average Driving Distance (Yards)",
+                    "TEE_AVG_FIR_PCT": "Average Fairway In Regulation (%)",
+                    "PUTTING_AVG_OVERALL": "Average Putts Per Hole"
+                };
+
+                //y val dict
+                var ydict = {
+                    "SCORING_AVG_OVERALL": "Scoring Average",
+                    "FINISHES_TOP10": "Top 10 Finishes",
+                    "FINISHES_OFFICIAL_MONEY": "Money Earned From Finishes (USD)"
+                };
+
+                //update x axis domain
+                xs.domain([ d3.min(data, function(d){return parseFloat(d[slide])}), d3.max(data, function(d){return parseFloat(d[slide])})]);
+                svg.selectAll(".xAxis")
+                    .transition()
+                    .duration(3333)
+                    .call(xa);
+
+                //update x title
+                svg.select(".x_axis_title")
+                    .transition()
+                    .duration(3333)
+                    .text(xdict[slide]);
+
+                //update y axis domain
+                ys.domain([d3.min(data, function(d){return parseFloat(d[y_value])}), d3.max(data, function(d){return parseFloat(d[y_value])})])
+                svg.selectAll(".yAxis")
+                    .transition()
+                    .duration(3333)
+                    .call(ya);
+                
+                //update y title
+                svg.select(".y_axis_title")
+                    .transition()
+                    .duration(3333)
+                    .text(ydict[y_value]);
+                
+                //dynamic tooltip
+                var mousemove = function(d){
+                    tooltip
+                        .style("left", (d3.event.pageX + 16) + "px")
+                        .style("top", (d3.event.pageY + 16) + "px")
+                        .html(d.PLAYER_NAME + "<br>" + xdict[slide] + ": " + d[slide] + "<br>" + ydict[y_value] + ": " + d[y_value])
+                }
+
+                //update data points
+                var u = svg.selectAll(".points").data(data);
+                u
+                    .enter()
+                    .append("circle")
+                    .attr("class","points")
+
+                    .merge(u)
+                    .transition()
+                    .duration(3333)
+                    .attr("cx", function(d){return xs(d[slide]);})
+                    .attr("cy", function(d){return ys(d[y_value]);})
+                    .attr("r", 5)
+                    .filter(function(d){return d.PLAYER_NAME == "Bryson DeChambeau"})
+                        .style("fill", "gold");
+                
+                //append tooltips to mouse events
+                svg.selectAll(".points")
+                    .on("mouseover", mouseover)
+                    .on("mousemove", mousemove)
+                    .on("mouseleave", mouseleave);
+            }
+            
+            //Initiate chart
+            update("SCORING_AVG_OVERALL", "TEE_AVG_DRIVING_DISTANCE")
         }
     </script>
 </body>
