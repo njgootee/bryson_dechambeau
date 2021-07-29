@@ -7,6 +7,7 @@
     <meta name="author" content="Nathan Gootee">
     <meta charset="UTF-8">
     <script src = 'https://d3js.org/d3.v5.min.js'></script>
+    <script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 </head>
 
 <body onload='init()'>
@@ -28,10 +29,14 @@
 
     <div id = "main_text">
         <p class = "blocktext">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-            Sed accumsan tortor ac commodo imperdiet. Quisque ac cursus velit. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. 
-            Aenean suscipit a nisl in lacinia. Pellentesque sit amet odio hendrerit, feugiat est vel, maximus lorem. 
-            Nullam iaculis mauris non ipsum interdum, id tristique nibh ornare. Fusce at vestibulum ex. Suspendisse et turpis nisl.
+            Bryson DeChambeau has shaken up the golfing world with his innovative approach to the game.
+            He has become infamous for his bombing drives and muscular physique.
+            Throughout DeChambeau's largely succesful 2020 PGA Tour season, his unorthodox style was criticized by detractors.
+            Bryson's long drives come at the expense of accuracy, leading to his comparison with the old golf adage: "drive for show, and putt for dough".
+            <br><br>
+            Does DeChambeau confirm or disprove this adage? Is his success solely based on his eye-watering drives?
+            The following narrative visualization investigates these questions and provides an insight into the phenomenon that is Bryson DeChambeau.
+            The dataset is from the PGA Tour 2020 season and includes golfers with at least one top 10 finish.
         </p>
     </div>
 
@@ -50,19 +55,27 @@
 
     <div id="chart" align="center"></div>
 
+    <div id = "main_text">
+        <p class = "tips">
+            Tip: Use the Y-Axis dropdown to explore measurements of golf success, use the slide buttons to navigate the slideshow.
+            <br>
+            Tip: Hover over data points to see golfer names and precise data.
+        </p>
+    </div>
+
     <div id="description">
-        <p class = desc>github: njgootee</p>
+        <p class = desc>github: <a href = "https://github.com/njgootee" >njgootee</a></p>
     </div>
 
     <script>
         async function init(){
-            //load data "https://njgootee.github.io/bryson_dechambeau/pga_tour_stats_2020_clean.csv"
-            const data =  await d3.csv("pga_tour_stats_2020_clean.csv")
+            //load data
+            const data =  await d3.csv("https://njgootee.github.io/bryson_dechambeau/pga_tour_stats_2020_clean.csv")
 
             //set margins, width, height
-            var margin = {top: 10, right: 60, bottom: 60, left: 60},
-                width = 650 - margin.left - margin.right,
-                height = 600 - margin.top - margin.bottom;
+            var margin = {top: 10, right: 300, bottom: 50, left: 80},
+                width = 800 - margin.left - margin.right,
+                height = 500 - margin.top - margin.bottom;
 
             //append svg to chart div
             var svg = d3.select("#chart")
@@ -80,7 +93,7 @@
                 .attr("transform","translate(0," + height + ")")
                 .attr("class", "xAxis");
             var xLabel = svg.append("text")
-                .attr("transform","translate(" + (width/2) + " ," + (height + margin.top + margin.bottom/2) + ")")
+                .attr("transform","translate(" + (width/2) + " ," + (height + margin.top +30) + ")")
                 .attr("class", "x_axis_title");
 
             //append y axis
@@ -92,7 +105,7 @@
                 .attr("transform", "rotate(-90)")
                 .attr("y", 0 - margin.left)
                 .attr("x",0 - (height / 2))
-                .attr("dy", "16px")
+                .attr("dy", "25px")
                 .attr("class", "y_axis_title"); 
 
             //append tooltip
@@ -113,6 +126,11 @@
                     .duration(200)
                     .style("opacity", 0)
             }
+
+            //annotations
+            svg.append("g")
+                .attr("class", "annot");
+            
 
             //initial state
             var slide = "TEE_AVG_DRIVING_DISTANCE";
@@ -188,7 +206,6 @@
                     .enter()
                     .append("circle")
                     .attr("class","points")
-
                     .merge(u)
                     .transition()
                     .duration(3333)
@@ -203,6 +220,46 @@
                     .on("mouseover", mouseover)
                     .on("mousemove", mousemove)
                     .on("mouseleave", mouseleave);
+                
+                //annotation points at bryson datum
+                var bryson_y = 0.0;
+                var bryson_x = 0.0;
+                d3.selectAll(".points").filter(function(d){return d.PLAYER_NAME == "Bryson DeChambeau"}).each(function(d){bryson_y = ys(d[y_value]); bryson_x = xs(d[slide]);});
+                
+                //annotations
+                var ldict = {
+                    "TEE_AVG_DRIVING_DISTANCE": "Among these PGA golfers, Bryson DeChambeau has the longest average driving distance. He has been a succesful golfer in 2020, with a low scoring average, nine top 10 finishes, and a large sum of finish prize money. The distribution of data shows correlation between average driving distance and measurements of success. Bryson's smashing drives likely factored into his success in 2020.",
+                    "TEE_AVG_FIR_PCT": "A Fairway in Regulation is when a golfer hits the fairway from their tee shot. The average FIR % can be used as a measure of a golfers driving accuracy. DeChambeau's accuracy is below the average. The data shows there is very little correlation between driving accuracy and measures of success. When it comes to drives, distance is more important than accuracy.",
+                    "PUTTING_AVG_OVERALL": "Bryson DeChambeau also has an impressive putting ability, averaging 1.57 putts per hole. The data shows a correlation between the number of putts per hole and measures of success. Bryson's long drives contributed to his 2020 PGA success, but so did his efficient putting."
+                };
+
+                var tdict = {
+                    "TEE_AVG_DRIVING_DISTANCE": "Slide 1: Drive For Dough",
+                    "TEE_AVG_FIR_PCT": "Slide 2: Accuracy Not As Important",
+                    "PUTTING_AVG_OVERALL": "Slide 3: Drives Aren't Everything"
+                };
+
+                //annotations settings and function
+                var annotations = [{
+                    note: {
+                        label: ldict[slide],
+                        title: tdict[slide],
+                        wrap: 250,
+                    },
+                    color: ["#292929a4"],
+                    x: bryson_x,
+                    y: bryson_y,
+                    nx: 450,
+                    ny:230
+                    //dy: 250-bryson_y,
+                    //dx: 450-bryson_x
+                }]
+                const makeAnnotations = d3.annotation()
+                    .annotations(annotations);
+
+                //append annotations
+                svg.select(".annot")
+                    .call(makeAnnotations)
             }
             
             //Initiate chart
