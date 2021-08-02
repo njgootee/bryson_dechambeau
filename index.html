@@ -47,10 +47,11 @@
         <option value ="FINISHES_TOP10">Top 10 Finishes</option>
         <option value = "FINISHES_OFFICIAL_MONEY">Money Earned</option>
     </select>
-
-    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "TEE_AVG_DRIVING_DISTANCE"> Slide 1</button>
-    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "TEE_AVG_FIR_PCT"> Slide 2</button>
-    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = "PUTTING_AVG_OVERALL"> Slide 3</button>
+    <button type="button" class ="button" onclick = "init.getPrev()" > Previous </button>
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = 1 id = "TEE_AVG_DRIVING_DISTANCE">Slide 1</button>
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = 2 id = "TEE_AVG_FIR_PCT">Slide 2</button>
+    <button type="button" class ="button" onclick = "init.getXAxis(this)" value = 3 id = "PUTTING_AVG_OVERALL">Slide 3</button>
+    <button type="button" class ="button" onclick = "init.getNext()" > Next </button>
     </div>
 
     <div id="chart" align="center"></div>
@@ -135,11 +136,18 @@
             //initial state
             var slide = "TEE_AVG_DRIVING_DISTANCE";
             var y_value = "SCORING_AVG_OVERALL";
+            var slidenum = 1;
+            var slide_dict = {
+                1 : "TEE_AVG_DRIVING_DISTANCE",
+                2 : "TEE_AVG_FIR_PCT",
+                3 : "PUTTING_AVG_OVERALL"
+            };
 
-            //get selected xAxis
+            //get selected X Axis
             init.getXAxis = getXAxis;
             function getXAxis(selectObj){
-                slide = selectObj.value;
+                slidenum = parseInt(selectObj.value)
+                slide = slide_dict[slidenum];
                 update(y_value, slide);
             }
             
@@ -150,8 +158,39 @@
                 update(y_value, slide);
             }
 
+            //get previous slide
+            init.getPrev = getPrev;
+            function getPrev(){
+                if(slidenum == 1){
+                    update(y_value, slide_dict[slidenum])
+                }
+                else{
+                    slidenum -=1;
+                    update(y_value, slide_dict[slidenum])
+                }
+            }
+
+            //get next slide
+            init.getNext = getNext;
+            function getNext(){
+                if(slidenum == 3){
+                    update(y_value, slide_dict[slidenum])
+                }
+                else{
+                    slidenum +=1;
+                    update(y_value, slide_dict[slidenum])
+                }
+            }
+
             //update chart with selected values
             function update(y_value, slide){
+                //highlight selected slide button
+                d3.selectAll(".button")
+                    .style("background-color", "");
+                slide_id = "#" + slide;
+                d3.select(slide_id)
+                    .style("background-color", "#00433f42");
+
                 //x val dict
                 var xdict = {
                     "TEE_AVG_DRIVING_DISTANCE": "Average Driving Distance (Yards)",
